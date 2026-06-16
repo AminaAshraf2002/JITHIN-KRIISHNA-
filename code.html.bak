@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jithin Krishnan · Portfolio</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: "#0A0A0A",
+                        accent: "#FF3C00",
+                        accentSec: "#FFD60A"
+                    },
+                    fontFamily: {
+                        bebas: ['"Bebas Neue"', 'sans-serif'],
+                        outfit: ['"Outfit"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Noise Texture */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.05;
+            background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+        }
+
+        /* Custom Cursor */
+        .cursor-dot, .cursor-ring {
+            position: fixed;
+            top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .cursor-dot {
+            width: 8px; height: 8px;
+            background-color: #FF3C00;
+        }
+        .cursor-ring {
+            width: 40px; height: 40px;
+            border: 1px solid rgba(255, 60, 0, 0.5);
+            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
+        }
+        body:has(.hoverable:hover) .cursor-ring,
+        body:has(a:hover) .cursor-ring,
+        body:has(button:hover) .cursor-ring {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(255, 60, 0, 0.1);
+            border-color: #FF3C00;
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background-color: #0A0A0A;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .preloader-letters {
+            display: flex;
+            font-size: 10rem;
+            line-height: 1;
+            overflow: hidden;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+        .preloader-j {
+            transform: translateY(-100%);
+        }
+        .preloader-k {
+            color: #FF3C00;
+            transform: translateY(-100%);
+        }
+        .preloader-line-wrapper {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .preloader-line {
+            width: 100%;
+            height: 100%;
+            background-color: #FF3C00;
+            transform: translateX(-101%);
+        }
+        .preloader-subtitle {
+            opacity: 0;
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        /* Navbar */
+        nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(10, 10, 10, 0.7);
+        }
+
+        /* Hero Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 25vw;
+            color: rgba(255, 255, 255, 0.02);
+            font-family: 'Bebas Neue', sans-serif;
+            z-index: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        /* Image Frame */
+        .image-frame {
+            position: relative;
+        }
+        .image-frame::after {
+            content: '';
+            position: absolute;
+            top: 30px; left: 30px;
+            width: 100%; height: 100%;
+            border: 2px solid #FF3C00;
+            z-index: -1;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .image-frame:hover::after {
+            transform: translate(-10px, -10px);
+        }
+
+        /* Marquee */
+        .marquee-wrapper {
+            overflow: hidden;
+            white-space: nowrap;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 24px 0;
+            background: #0A0A0A;
+            display: flex;
+        }
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Skill bars */
+        .skill-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .skill-bar-fill {
+            height: 100%;
+            background: #FF3C00;
+            width: 0%;
+        }
+
+        /* Tool Tags */
+        .tool-tag {
+            position: relative;
+            overflow: hidden;
+            transition: color 0.3s ease;
+            z-index: 1;
+        }
+        .tool-tag::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 0%;
+            background: #FF3C00;
+            transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: -1;
+        }
+        .tool-tag:hover {
+            color: #fff;
+            border-color: #FF3C00;
+        }
+        .tool-tag:hover::before {
+            height: 100%;
+        }
+
+        /* Timeline */
+        .timeline-line {
+            position: absolute;
+            left: 11px;
+            top: 24px;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #FF3C00, transparent);
+        }
+        .timeline-dot {
+            width: 24px;
+            height: 24px;
+            background: #0A0A0A;
+            border: 3px solid #FF3C00;
+            border-radius: 50%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            box-shadow: 0 0 15px rgba(255, 60, 0, 0.5);
+        }
+
+        /* Portfolio Cards */
+        .portfolio-card {
+            position: relative;
+            overflow: hidden;
+            background: #111;
+        }
+        .portfolio-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 0.8;
+        }
+        .portfolio-card:hover img {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        .portfolio-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, #FF3C00 0%, rgba(255,60,0,0) 80%);
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px;
+        }
+        .portfolio-card:hover .portfolio-overlay {
+            opacity: 0.95;
+            transform: translateY(0);
+        }
+        .portfolio-bg-letter {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20vw;
+            color: rgba(255,255,255,0.03);
+            font-family: 'Bebas Neue', sans-serif;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Certifications */
+        .cert-card {
+            border-left: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            background: rgba(255,255,255,0.02);
+        }
+        .cert-card:hover {
+            border-left-color: #FF3C00;
+            background: rgba(255,255,255,0.04);
+            transform: translateX(10px);
+        }
+
+        /* Enhanced About & Award Section */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .award-card {
+            background: linear-gradient(135deg, rgba(255, 214, 10, 0.1) 0%, rgba(255, 60, 0, 0.05) 100%);
+            border: 1px solid rgba(255, 214, 10, 0.3);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .award-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(255, 214, 10, 0.3) 25%, transparent 50%);
+            animation: rotate-glow 4s linear infinite;
+            z-index: -1;
+        }
+        .award-card::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: #111;
+            z-index: -1;
+            border-radius: inherit;
+        }
+        @keyframes rotate-glow {
+            100% { transform: rotate(360deg); }
+        }
+        .floating-icon {
+            animation: float-y 3s ease-in-out infinite;
+        }
+        @keyframes float-y {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .about-text-mask {
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="preloader-letters">
+            <span class="preloader-j">J</span>
+            <span class="preloader-k">K</span>
+        </div>
+        <div class="preloader-line-wrapper">
+            <div class="preloader-line"></div>
+        </div>
+        <div class="preloader-subtitle">Jithin Krishnan · Portfolio</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 border-b border-white/5 opacity-0 invisible" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+            <a href="#" class="font-bebas text-3xl tracking-wider flex items-end">
+                J<span class="text-accent">.</span>K
+            </a>
+            <div class="hidden md:flex gap-8 text-sm font-medium tracking-widest uppercase">
+                <a href="#about" class="hover:text-accent transition-colors">About</a>
+                <a href="#experience" class="hover:text-accent transition-colors">Experience</a>
+                <a href="#work" class="hover:text-accent transition-colors">Work</a>
+                <a href="#contact" class="hover:text-accent transition-colors">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <div class="watermark" id="hero-watermark">DESIGN</div>
+        
+        <div class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center z-10">
+            
+            <div class="space-y-8 hero-content">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-[2px] bg-accent"></div>
+                    <span class="uppercase tracking-widest text-sm text-gray-400 font-medium">Available for Projects</span>
+                </div>
+                
+                <h1 class="font-bebas text-[5rem] md:text-[7rem] leading-[0.85] tracking-wide">
+                    JITHIN <br>
+                    <span class="text-accent">KRISHNAN</span>
+                </h1>
+                
+                <div class="space-y-4 max-w-lg">
+                    <h2 class="text-xl md:text-2xl font-light text-gray-300">Graphic Designer · Video Editor · Visual Storyteller</h2>
+                    <p class="text-gray-400 leading-relaxed font-light">
+                        I craft bold, cinematic designs and engaging motion pieces for forward-thinking brands. Based in Palakkad, Kerala, bringing stories to life through pixels and keyframes.
+                    </p>
+                </div>
+                
+                <div class="flex flex-wrap gap-6 pt-4">
+                    <a href="#work" class="px-8 py-4 bg-accent text-white font-medium hover:bg-white hover:text-bg transition-colors duration-300">View My Work</a>
+                    <a href="#contact" class="px-8 py-4 border border-white/20 font-medium hover:border-accent hover:text-accent transition-colors duration-300">Let's Talk</a>
+                </div>
+            </div>
+
+            <div class="relative hero-image hidden lg:block">
+                <div class="image-frame w-[400px] h-[550px] ml-auto">
+                    <img src="img.png" alt="Jithin Krishnan" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700">
+                    
+                    <div class="absolute -bottom-10 -left-10 bg-[#111] border border-white/10 p-5 rounded-sm flex items-center gap-4 shadow-2xl animate-[pulse_3s_ease-in-out_infinite]">
+                        <span class="text-accentSec text-2xl"><i class="fa-solid fa-star"></i></span>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Award Winner</p>
+                            <p class="font-bebas text-xl tracking-wider">Best Performer 2025</p>
+                        </div>
+                    </div>
+
+                    <div class="absolute top-10 -right-16 bg-[#111] border border-white/10 px-5 py-3 flex flex-col items-center">
+                        <span class="font-bebas text-3xl text-accent">1+</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-widest">Yrs Exp</span>
+                    </div>
+
+                    <div class="absolute top-32 -right-10 bg-[#111] border border-white/10 px-5 py-3 flex flex-col items-center">
+                        <span class="font-bebas text-3xl text-white">50+</span>
+                        <span class="text-[10px] text-gray-400 uppercase tracking-widest">Projects</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="marquee-wrapper border-y border-white/5 opacity-0 section-reveal">
+        <div class="marquee-content font-bebas text-3xl md:text-5xl tracking-widest text-gray-500">
+            Social Media Design <span class="diamond">◆</span> 
+            Branding & Identity <span class="diamond">◆</span> 
+            Video Editing <span class="diamond">◆</span> 
+            Hoarding Designs <span class="diamond">◆</span> 
+            App Banners <span class="diamond">◆</span> 
+            Brochures <span class="diamond">◆</span> 
+            Motion Graphics <span class="diamond">◆</span> 
+            Social Media Design <span class="diamond">◆</span> 
+            Branding & Identity <span class="diamond">◆</span> 
+            Video Editing <span class="diamond">◆</span> 
+            Hoarding Designs <span class="diamond">◆</span> 
+            App Banners <span class="diamond">◆</span> 
+            Brochures <span class="diamond">◆</span> 
+            Motion Graphics <span class="diamond">◆</span> 
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="py-40 px-6 relative">
+        <!-- Background Accents -->
+        <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-accent/5 to-transparent pointer-events-none -z-10"></div>
+        <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-accentSec/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+        <div class="max-w-7xl mx-auto glass-panel rounded-3xl p-10 md:p-24 relative overflow-hidden">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 relative z-10">
+                <!-- Left Column -->
+                <div class="space-y-10">
+                    <div class="about-fade-up inline-flex items-center gap-3 border border-accent/30 bg-accent/5 text-accent text-xs font-bold uppercase tracking-widest px-5 py-2 rounded-full">
+                        <i class="fa-solid fa-user-astronaut"></i> About The Creator
+                    </div>
+                    
+                    <h2 class="font-bebas text-5xl md:text-7xl tracking-wide leading-none">
+                        <div class="about-text-mask"><span class="about-title-line block">The Story</span></div>
+                        <div class="about-text-mask"><span class="about-title-line block">Behind The <span class="text-accent">Work</span></span></div>
+                    </h2>
+                    
+                    <div class="space-y-6 text-gray-400 font-light leading-relaxed text-lg">
+                        <p class="about-para"><i class="fa-solid fa-quote-left text-accentSec/30 text-2xl mr-3"></i>I started my journey with a deep curiosity for how visuals communicate emotions. Today, I am a dedicated Graphic Designer and Video Editor blending aesthetic appeal with strategic intent.</p>
+                        <p class="about-para">Over the past year, I have honed my skills across various disciplines—from print media to dynamic motion graphics—ensuring every project not only looks premium but also performs exceptionally.</p>
+                        <p class="about-para">Currently shaping brand narratives and creating high-impact campaigns in Kerala's thriving tech landscape.</p>
+                    </div>
+
+                    <!-- Enhanced Award Card -->
+                    <div class="award-card rounded-2xl p-8 mt-12 hoverable group cursor-default">
+                        <div class="flex items-start gap-6 relative z-10">
+                            <div class="w-16 h-16 rounded-full bg-accentSec/10 border border-accentSec/30 flex items-center justify-center shrink-0 floating-icon">
+                                <i class="fa-solid fa-trophy text-accentSec text-2xl group-hover:scale-125 transition-transform duration-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bebas text-3xl text-white tracking-widest mb-2 group-hover:text-accentSec transition-colors duration-300">Best Performer Award 2025</h3>
+                                <p class="text-sm text-gray-400 leading-relaxed font-light">Awarded for outstanding creative contributions and consistent excellence at <span class="text-white font-medium">Inspite Technologies, Infopark Kochi.</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Skills & Tools) -->
+                <div class="space-y-16">
+                    <!-- Skills -->
+                    <div class="space-y-8">
+                        <h3 class="about-fade-up font-bebas text-4xl tracking-widest flex items-center gap-3">
+                            <i class="fa-solid fa-chart-pie text-accent"></i> Core Competencies
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <!-- Skill -->
+                            <div class="about-skill-item">
+                                <div class="flex justify-between text-sm uppercase tracking-widest mb-3 font-medium">
+                                    <span><i class="fa-solid fa-hashtag text-accent mr-2"></i>Social Media Design</span>
+                                    <span class="text-accent">95%</span>
+                                </div>
+                                <div class="skill-bar-bg rounded-full h-2"><div class="skill-bar-fill rounded-full" data-width="95%"></div></div>
+                            </div>
+                            <!-- Skill -->
+                            <div class="about-skill-item">
+                                <div class="flex justify-between text-sm uppercase tracking-widest mb-3 font-medium">
+                                    <span><i class="fa-solid fa-fingerprint text-accent mr-2"></i>Branding</span>
+                                    <span class="text-accent">90%</span>
+                                </div>
+                                <div class="skill-bar-bg rounded-full h-2"><div class="skill-bar-fill rounded-full" data-width="90%"></div></div>
+                            </div>
+                            <!-- Skill -->
+                            <div class="about-skill-item">
+                                <div class="flex justify-between text-sm uppercase tracking-widest mb-3 font-medium">
+                                    <span><i class="fa-solid fa-film text-accent mr-2"></i>Video Editing</span>
+                                    <span class="text-accent">88%</span>
+                                </div>
+                                <div class="skill-bar-bg rounded-full h-2"><div class="skill-bar-fill rounded-full" data-width="88%"></div></div>
+                            </div>
+                            <!-- Skill -->
+                            <div class="about-skill-item">
+                                <div class="flex justify-between text-sm uppercase tracking-widest mb-3 font-medium">
+                                    <span><i class="fa-solid fa-font text-accent mr-2"></i>Typography</span>
+                                    <span class="text-accent">87%</span>
+                                </div>
+                                <div class="skill-bar-bg rounded-full h-2"><div class="skill-bar-fill rounded-full" data-width="87%"></div></div>
+                            </div>
+                            <!-- Skill -->
+                            <div class="about-skill-item">
+                                <div class="flex justify-between text-sm uppercase tracking-widest mb-3 font-medium">
+                                    <span><i class="fa-solid fa-print text-accent mr-2"></i>Print Design</span>
+                                    <span class="text-accent">85%</span>
+                                </div>
+                                <div class="skill-bar-bg rounded-full h-2"><div class="skill-bar-fill rounded-full" data-width="85%"></div></div>
+                            </div>
+                            <!-- Skill -->
+                            <div class="about-skill-item">
+                                <div class="flex justify-between text-sm uppercase tracking-widest mb-3 font-medium">
+                                    <span><i class="fa-solid fa-wand-magic-sparkles text-accent mr-2"></i>Motion Graphics</span>
+                                    <span class="text-accent">80%</span>
+                                </div>
+                                <div class="skill-bar-bg rounded-full h-2"><div class="skill-bar-fill rounded-full" data-width="80%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tools -->
+                    <div class="space-y-8">
+                        <h3 class="about-fade-up font-bebas text-4xl tracking-widest flex items-center gap-3">
+                            <i class="fa-solid fa-layer-group text-accent"></i> Software Stack
+                        </h3>
+                        <div class="flex flex-wrap gap-4">
+                            <div class="about-tool-tag tool-tag border border-white/10 rounded-lg px-6 py-4 text-sm font-medium uppercase tracking-widest bg-white/5 backdrop-blur-md shadow-lg"><i class="fa-brands fa-adobe mr-2 text-accent"></i>Photoshop</div>
+                            <div class="about-tool-tag tool-tag border border-white/10 rounded-lg px-6 py-4 text-sm font-medium uppercase tracking-widest bg-white/5 backdrop-blur-md shadow-lg"><i class="fa-brands fa-adobe mr-2 text-accent"></i>Illustrator</div>
+                            <div class="about-tool-tag tool-tag border border-white/10 rounded-lg px-6 py-4 text-sm font-medium uppercase tracking-widest bg-white/5 backdrop-blur-md shadow-lg"><i class="fa-brands fa-adobe mr-2 text-accent"></i>InDesign</div>
+                            <div class="about-tool-tag tool-tag border border-white/10 rounded-lg px-6 py-4 text-sm font-medium uppercase tracking-widest bg-white/5 backdrop-blur-md shadow-lg"><i class="fa-solid fa-video mr-2 text-accent"></i>Premiere Pro</div>
+                            <div class="about-tool-tag tool-tag border border-white/10 rounded-lg px-6 py-4 text-sm font-medium uppercase tracking-widest bg-white/5 backdrop-blur-md shadow-lg"><i class="fa-solid fa-film mr-2 text-accent"></i>After Effects</div>
+                            <div class="about-tool-tag tool-tag border border-white/10 rounded-lg px-6 py-4 text-sm font-medium uppercase tracking-widest bg-white/5 backdrop-blur-md shadow-lg"><i class="fa-solid fa-pen-nib mr-2 text-accent"></i>Canva</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="py-32 px-6 overflow-hidden">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="exp-title font-bebas text-5xl md:text-6xl tracking-wide text-center mb-20 opacity-0 transform translate-y-10">
+                Professional <span class="text-accent">Timeline</span>
+            </h2>
+
+            <div class="relative pl-8 md:pl-0">
+                <div class="timeline-line md:left-1/2 md:-ml-[1px] exp-line scale-y-0 origin-top"></div>
+
+                <!-- Exp 1 -->
+                <div class="exp-item relative mb-16 md:w-1/2 md:pr-16 text-left group opacity-0 translate-y-10">
+                    <div class="timeline-dot md:left-auto md:right-[-12px] transition-transform duration-300 group-hover:scale-125 flex items-center justify-center">
+                        <i class="fa-solid fa-circle-dot text-[8px] text-accent"></i>
+                    </div>
+                    <div class="text-accent text-sm font-bold uppercase tracking-widest mb-2"><i class="fa-solid fa-calendar-days mr-2"></i>April 2025 – Present</div>
+                    <h3 class="font-bebas text-3xl tracking-widest mb-1">Graphic Designer</h3>
+                    <p class="text-gray-400 font-medium mb-4"><i class="fa-solid fa-building mr-2"></i>Inspite Technologies, Infopark Kochi</p>
+                    <ul class="space-y-2 text-gray-500 font-light">
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Spearheading visual identity design for key tech products.</li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Creating impactful social media campaigns and marketing collateral.</li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Editing high-quality promotional video content.</li>
+                    </ul>
+                </div>
+
+                <!-- Exp 2 -->
+                <div class="exp-item relative mb-16 md:w-1/2 md:ml-auto md:pl-16 text-left group opacity-0 translate-y-10">
+                    <div class="timeline-dot md:left-[-12px] transition-transform duration-300 group-hover:scale-125 flex items-center justify-center">
+                        <i class="fa-solid fa-circle-dot text-[8px] text-accent"></i>
+                    </div>
+                    <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2"><i class="fa-solid fa-calendar-days mr-2"></i>2024 (3-Month Internship)</div>
+                    <h3 class="font-bebas text-3xl tracking-widest mb-1">Graphic Design Intern</h3>
+                    <p class="text-gray-400 font-medium mb-4"><i class="fa-solid fa-building mr-2"></i>Zed Soft Tech, Malappuram</p>
+                    <ul class="space-y-2 text-gray-500 font-light">
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Assisted senior designers in brand asset creation.</li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Developed foundation in professional workflow and client delivery.</li>
+                    </ul>
+                </div>
+
+                <!-- Exp 3 -->
+                <div class="exp-item relative md:w-1/2 md:pr-16 text-left group opacity-0 translate-y-10">
+                    <div class="timeline-dot md:left-auto md:right-[-12px] transition-transform duration-300 group-hover:scale-125 flex items-center justify-center">
+                        <i class="fa-solid fa-circle-dot text-[8px] text-accent"></i>
+                    </div>
+                    <div class="text-accent text-sm font-bold uppercase tracking-widest mb-2"><i class="fa-solid fa-calendar-days mr-2"></i>Ongoing</div>
+                    <h3 class="font-bebas text-3xl tracking-widest mb-1">Freelance Designer & Editor</h3>
+                    <p class="text-gray-400 font-medium mb-4"><i class="fa-solid fa-laptop-house mr-2"></i>Independent</p>
+                    <ul class="space-y-2 text-gray-500 font-light">
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Delivering bespoke logo designs and hoarding graphics for local businesses.</li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-right text-accent mt-1"></i> Crafting dynamic motion graphics for diverse clientele.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="work" class="py-32 px-6 bg-[#0f0f0f]">
+        <div class="max-w-7xl mx-auto section-reveal">
+            <h2 class="font-bebas text-5xl md:text-6xl tracking-wide mb-16">
+                Selected <span class="text-accent">Works</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[350px]">
+                
+                <!-- Category: AD CREATIVES -->
+                <div class="portfolio-card hoverable md:col-span-2 group">
+                    <div class="portfolio-bg-letter">A</div>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAy6XqjTAjayP4m-nuZfOwXTdIqxAE59vY0P0CWkD0H2j89ToNskdZU4lwr6BGBU9NnoGVxsqDVWfG1-nCQkM5LFZhKt9GCjMJ-4hesWsL7Pu7msbj0YTDkjgiZKp2Jt0dZF21FI59MepmYozEr0invbwcxd6UhMFRosCDgvMg1k8UHuA3VBq6Eow1NEHabhoVot1wnJ6vePAuDo7pvgeEH3f3gZ-U42JzTHqic_81A4FoJOdfYkBU_bpYHAnQs_BNfXm_hkbcaN7E" alt="Ad Creatives">
+                    <div class="portfolio-overlay">
+                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Category</div>
+                        <h3 class="font-bebas text-4xl tracking-widest">AD CREATIVES</h3>
+                    </div>
+                </div>
+
+                <!-- Category: VIDEOS -->
+                <div class="portfolio-card hoverable group">
+                    <div class="portfolio-bg-letter">V</div>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaalbpM_ZD4mRKDrqVauzexRQFVFzB3uFOfDJ2XwXEqANVdREq3X6XVd4rXNS4NQQAYik6qBOLdvNiwtJjn1GvR7gSElgzGT7jrfWrUyByvT5p6aDJfBMM9MNheJZ44la7eLUXkjlAhbRDUB9QPuDCOoNDGFhyEBOoiCvmJEEIt1Vea3EVduSMT8q46oBkwqET3_F0WMxBDXPJDa9ToV2jODvUTL3sS3NQypzIhtTdKXW3DN07cDfBhvjevZoEskP0rZM_7eqne7E" alt="Videos">
+                    <div class="portfolio-overlay">
+                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Category</div>
+                        <h3 class="font-bebas text-4xl tracking-widest">VIDEOS</h3>
+                    </div>
+                </div>
+
+                <!-- Category: BROUCHERS (PDF Format Example) -->
+                <div class="portfolio-card hoverable group relative">
+                    <div class="portfolio-bg-letter">B</div>
+                    <!-- PDF Embed replacing Image -->
+                    <iframe src="brouchers.pdf#toolbar=0&navpanes=0&scrollbar=0" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" style="border:none; pointer-events:none;"></iframe>
+                    
+                    <div class="portfolio-overlay pointer-events-none">
+                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Category (PDF)</div>
+                        <h3 class="font-bebas text-4xl tracking-widest">BROUCHERS</h3>
+                    </div>
+                    <!-- Invisible link to open full PDF on click -->
+                    <a href="brouchers.pdf" target="_blank" class="absolute inset-0 z-20"></a>
+                </div>
+
+                <!-- Category: LOGO DESIGN -->
+                <div class="portfolio-card hoverable group">
+                    <div class="portfolio-bg-letter">L</div>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYzL3AD1iaJx0iaTm8XTKbIRg9XIsFntaZoWKPNcyb8K-Z4VDV6ewJejTjw7-4xUwngrLO9fVCqlznKlsDR1du-X0yXVqAQN2Ljm79rxidI9vfDCtnMVZ1B7LMWPB5zPWcDUmRqrAXH6CMrTBxckGjWn7CNfHb5IYyrCCaIJSOu-w1xEDPrgmZxlLgytpdT1k_U4_PVEqnu8A85uUvBsilYacEaBL2DlfZ2_RHUBQZ_Xihpc9fMbSa6ftke3Q4vttAgJ1lTtQPvfk" alt="Logo Design">
+                    <div class="portfolio-overlay">
+                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Category</div>
+                        <h3 class="font-bebas text-4xl tracking-widest">LOGO DESIGN</h3>
+                    </div>
+                </div>
+
+                <!-- Category: HORDINGS DESIGNS -->
+                <div class="portfolio-card hoverable group md:col-span-2 lg:col-span-1">
+                    <div class="portfolio-bg-letter">H</div>
+                    <img src="https://images.unsplash.com/photo-1629729802306-2c19623253b8?q=80&w=800&auto=format&fit=crop" alt="Hoardings Designs">
+                    <div class="portfolio-overlay">
+                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Category</div>
+                        <h3 class="font-bebas text-4xl tracking-widest">HORDINGS DESIGNS</h3>
+                    </div>
+                </div>
+
+                <!-- Category: SOCIAL MEDIA CREATIVES -->
+                <div class="portfolio-card hoverable md:col-span-2 lg:col-span-3 h-[450px] group">
+                    <div class="portfolio-bg-letter">S</div>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUnU14xk_0_7LBB1Ks-RqOVJFKjBkDOQF1W3S62-0T8ERBJnU47fjuwnSyImWkYSDrqfVNZ-h4BbfopyvBiYAWuj0NvitqKQXuv3DII3T5twmTh_uFtHouVnLjPZM_55Mi_0-1B2kdVFoSYaLUs2eyvWaSb1SKvdF2nhJueDNq5OnGzf_AKnrYnwVIbg4AzOctjCPWjdGwoDQpleYI1UbKVfMiMKLW5LTdkTEGklSd4LmVcCVtcdaUoCau9_kZ_v7M6Eajc3RpXsg" alt="Social Media Creatives">
+                    <div class="portfolio-overlay">
+                        <div class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Category</div>
+                        <h3 class="font-bebas text-4xl tracking-widest">SOCIAL MEDIA CREATIVES</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Certifications Section -->
+    <section class="py-32 px-6">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="cert-title font-bebas text-5xl md:text-6xl tracking-wide mb-16 text-center opacity-0 translate-y-10">
+                Credentials & <span class="text-accent">Awards</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Cert 1 -->
+                <div class="cert-item opacity-0 translate-y-10 glass-panel p-8 rounded-2xl flex items-center gap-6 hoverable group border-l-4 border-l-accentSec hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 rounded-full bg-accentSec/10 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-trophy text-3xl text-accentSec group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bebas text-2xl tracking-widest text-accentSec mb-1">Best Performer Award 2025</h4>
+                        <p class="text-gray-400 text-sm"><i class="fa-solid fa-building mr-2"></i>Inspite Technologies, Infopark Kochi</p>
+                    </div>
+                </div>
+                <!-- Cert 2 -->
+                <div class="cert-item opacity-0 translate-y-10 glass-panel p-8 rounded-2xl flex items-center gap-6 hoverable group border-l-4 border-l-white/10 hover:border-l-accent hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-graduation-cap text-3xl text-white group-hover:text-accent transition-colors"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bebas text-2xl tracking-widest mb-1 group-hover:text-accent transition-colors">Graphic Designing & Video Editing</h4>
+                        <p class="text-gray-400 text-sm"><i class="fa-solid fa-certificate mr-2"></i>Certification from Avoda Edutech</p>
+                    </div>
+                </div>
+                <!-- Cert 3 -->
+                <div class="cert-item opacity-0 translate-y-10 glass-panel p-8 rounded-2xl flex items-center gap-6 hoverable group border-l-4 border-l-white/10 hover:border-l-accent hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-building-columns text-3xl text-white group-hover:text-accent transition-colors"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bebas text-2xl tracking-widest mb-1 group-hover:text-accent transition-colors">Higher Secondary Education</h4>
+                        <p class="text-gray-400 text-sm"><i class="fa-solid fa-award mr-2"></i>Completed with excellence</p>
+                    </div>
+                </div>
+                <!-- Cert 4 -->
+                <div class="cert-item opacity-0 translate-y-10 glass-panel p-8 rounded-2xl flex items-center gap-6 hoverable group border-l-4 border-l-white/10 hover:border-l-accent hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-book-open text-3xl text-white group-hover:text-accent transition-colors"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bebas text-2xl tracking-widest mb-1 group-hover:text-accent transition-colors">SSLC</h4>
+                        <p class="text-gray-400 text-sm"><i class="fa-solid fa-school mr-2"></i>Secondary School Leaving Certificate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-40 px-6 bg-[#080808] border-t border-white/5 relative overflow-hidden">
+        <div class="max-w-4xl mx-auto text-center section-reveal relative z-10">
+            <h2 class="font-bebas text-6xl md:text-8xl tracking-wide mb-6">
+                LET'S WORK <span class="text-accent">TOGETHER</span>
+            </h2>
+            <p class="text-gray-400 font-light text-lg md:text-xl mb-16">
+                Ready to elevate your visual identity? <br>
+                <span class="text-sm mt-2 block text-gray-500"><i class="fa-solid fa-earth-asia mr-2"></i>Speaking English, Malayalam & Tamil</span>
+            </p>
+
+            <div class="flex flex-col md:flex-row flex-wrap justify-center gap-12 md:gap-16 lg:gap-20 mb-16">
+                <div class="space-y-4 hoverable group cursor-pointer">
+                    <div class="w-16 h-16 rounded-full glass-panel mx-auto flex items-center justify-center group-hover:bg-accent/20 transition-all duration-300">
+                        <i class="fa-solid fa-envelope text-accent text-2xl group-hover:scale-125 transition-transform duration-300"></i>
+                    </div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-gray-500">Email</div>
+                    <div class="font-medium text-lg">jithinkrishnan1000@gmail.com</div>
+                </div>
+                <div class="space-y-4 hoverable group cursor-pointer">
+                    <div class="w-16 h-16 rounded-full glass-panel mx-auto flex items-center justify-center group-hover:bg-accent/20 transition-all duration-300">
+                        <i class="fa-solid fa-phone text-accent text-2xl group-hover:scale-125 transition-transform duration-300"></i>
+                    </div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-gray-500">Phone</div>
+                    <div class="font-medium text-lg">+91 8075773025</div>
+                </div>
+                <div class="space-y-4 hoverable group cursor-pointer">
+                    <div class="w-16 h-16 rounded-full glass-panel mx-auto flex items-center justify-center group-hover:bg-accent/20 transition-all duration-300">
+                        <i class="fa-solid fa-location-dot text-accent text-2xl group-hover:scale-125 transition-transform duration-300"></i>
+                    </div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-gray-500">Location</div>
+                    <div class="font-medium text-lg">Palakkad, Kerala</div>
+                </div>
+                <a href="https://www.instagram.com/gra_phicwaves?igsh=aGtiMDM5ZWVuejBr&utm_source=ig_contact_invite" target="_blank" class="space-y-4 hoverable group cursor-pointer block">
+                    <div class="w-16 h-16 rounded-full glass-panel mx-auto flex items-center justify-center group-hover:bg-accent/20 transition-all duration-300">
+                        <i class="fa-brands fa-instagram text-accent text-2xl group-hover:scale-125 transition-transform duration-300"></i>
+                    </div>
+                    <div class="text-sm font-bold uppercase tracking-widest text-gray-500">Instagram</div>
+                    <div class="font-medium text-lg hover:text-accent transition-colors">@gra_phicwaves</div>
+                </a>
+            </div>
+
+            <a href="mailto:jithinkrishnan1000@gmail.com" class="inline-flex items-center gap-4 bg-white text-bg px-10 py-5 font-bold uppercase tracking-widest hover:bg-accent hover:text-white transition-colors duration-300 hoverable rounded-full">
+                Send a Message <i class="fa-solid fa-arrow-right text-xl"></i>
+            </a>
+        </div>
+        
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-accent/10 rounded-full blur-[120px] -z-0"></div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 px-6 border-t border-white/5 text-center md:text-left flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto text-sm text-gray-500 uppercase tracking-widest font-medium">
+        <div class="font-bebas text-2xl tracking-wider text-white mb-4 md:mb-0">
+            J<span class="text-accent">.</span>K
+        </div>
+        <div>
+            © 2026 JITHIN KRISHNAN. DESIGNED WITH PRECISION.
+        </div>
+        <div class="mt-4 md:mt-0">
+            PALAKKAD, KERALA
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Icon -->
+    <a href="https://wa.me/918075773025" target="_blank" class="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[9000] w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center text-3xl shadow-lg hover:bg-[#20bd5a] hover:scale-110 transition-all duration-300 hoverable">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script>
+        // Custom Cursor
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorRing = document.querySelector('.cursor-ring');
+        
+        let mouseX = 0;
+        let mouseY = 0;
+        let ringX = 0;
+        let ringY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Dot follows instantly
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+        });
+
+        // Ring follows with lag
+        function animateCursor() {
+            let distX = mouseX - ringX;
+            let distY = mouseY - ringY;
+            
+            ringX = ringX + (distX * 0.15);
+            ringY = ringY + (distY * 0.15);
+            
+            cursorRing.style.left = ringX + 'px';
+            cursorRing.style.top = ringY + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Preloader Sequence
+        const tl = gsap.timeline();
+
+        tl.to(".preloader-j", { y: 0, duration: 0.8, ease: "bounce.out" })
+          .to(".preloader-k", { y: 0, duration: 0.8, ease: "bounce.out" }, "-=0.4")
+          .to(".preloader-line", { x: "0%", duration: 0.8, ease: "power4.inOut" })
+          .to(".preloader-subtitle", { opacity: 1, duration: 0.5 })
+          .to("#preloader", { yPercent: -100, duration: 1, ease: "power4.inOut", delay: 1.5 })
+          .to("#navbar", { autoAlpha: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.5")
+          .from(".hero-content > *", { y: 40, opacity: 0, duration: 0.8, stagger: 0.1, ease: "power3.out" }, "-=0.5")
+          .from(".hero-image", { x: 40, opacity: 0, duration: 1, ease: "power3.out" }, "-=0.8");
+
+        // Parallax Hero Watermark
+        gsap.to("#hero-watermark", {
+            yPercent: 50,
+            ease: "none",
+            scrollTrigger: {
+                trigger: ".hero-content",
+                start: "top center",
+                end: "bottom top",
+                scrub: true
+            }
+        });
+
+        // Section Reveals
+        gsap.utils.toArray('.section-reveal').forEach(section => {
+            gsap.from(section, {
+                opacity: 0,
+                y: 50,
+                duration: 1,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: section,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                }
+            });
+        });
+
+        // Skill Bars Animate on Scroll
+        gsap.utils.toArray('.skill-bar-fill').forEach(bar => {
+            gsap.to(bar, {
+                width: bar.getAttribute('data-width'),
+                duration: 1.5,
+                ease: "power4.out",
+                scrollTrigger: {
+                    trigger: bar,
+                    start: "top 90%",
+                }
+            });
+        });
+
+        // Specialized About Section Animations
+        const aboutTl = gsap.timeline({
+            scrollTrigger: {
+                trigger: "#about",
+                start: "top 75%",
+            }
+        });
+
+        aboutTl.from(".about-fade-up", { y: 30, opacity: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" })
+               .from(".about-title-line", { yPercent: 100, duration: 0.8, stagger: 0.1, ease: "power4.out" }, "-=0.4")
+               .from(".about-para", { y: 20, opacity: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" }, "-=0.4")
+               .from(".award-card", { scale: 0.8, opacity: 0, rotationX: 15, duration: 0.8, ease: "back.out(1.7)" }, "-=0.2")
+               .from(".about-skill-item", { x: 30, opacity: 0, duration: 0.6, stagger: 0.05, ease: "power3.out" }, "-=0.6")
+               .from(".about-tool-tag", { scale: 0.5, opacity: 0, duration: 0.5, stagger: 0.05, ease: "back.out(2)" }, "-=0.4");
+
+        // Experience Timeline GSAP
+        // Title Reveal
+        gsap.to(".exp-title", {
+            y: 0, 
+            opacity: 1, 
+            duration: 0.8, 
+            ease: "power3.out",
+            scrollTrigger: {
+                trigger: "#experience",
+                start: "top 75%"
+            }
+        });
+
+        // Scrubbing Timeline Line
+        gsap.to(".exp-line", {
+            scaleY: 1,
+            ease: "none",
+            scrollTrigger: {
+                trigger: "#experience .relative",
+                start: "top 70%",
+                end: "bottom 50%",
+                scrub: 0.5
+            }
+        });
+
+        // Individual Experience Items Reveal
+        gsap.utils.toArray(".exp-item").forEach(item => {
+            gsap.to(item, {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                ease: "back.out(1.5)",
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top 75%"
+                }
+            });
+        });
+
+        // Certifications GSAP
+        const certTl = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".cert-title",
+                start: "top 85%",
+            }
+        });
+        certTl.to(".cert-title", { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" })
+              .to(".cert-item", { y: 0, opacity: 1, duration: 0.6, stagger: 0.15, ease: "power3.out" }, "-=0.4");
+
+    </script>
+</body>
+</html>
