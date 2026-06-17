@@ -623,10 +623,19 @@ export default function App() {
       return cat.includes('POSTER') || cat.includes('POSTERS');
     }
     if (sel === 'HORDINGS') {
-      return cat.includes('HORDING') || cat.includes('HORDINGS');
+      return cat.includes('HORDING') || cat.includes('HORDINGS') || cat.includes('HORDINGS DESIGNS');
     }
     if (sel === 'LOGO DESIGN') {
       return cat.includes('LOGO');
+    }
+    if (sel === 'BUSINESS CARDS & ID CARDS') {
+      return cat.includes('BUSINESS') || cat.includes('ID CARD') || cat.includes('ID CARDS') || cat.includes('VISITING');
+    }
+    if (sel === 'VIDEOS & REELS') {
+      return cat.includes('VIDEO') || cat.includes('VIDEOS') || cat.includes('REEL') || cat.includes('REELS');
+    }
+    if (sel === 'OTHERS') {
+      return cat.includes('OTHER') || cat.includes('OTHERS');
     }
     return cat === sel;
   };
@@ -750,7 +759,7 @@ export default function App() {
             <div className="image-frame w-[400px] h-[550px] ml-auto">
               <img src="/img.png" alt="Jithin Krishnan" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
               
-              <div className="absolute -bottom-10 -left-10 bg-[#111] border border-white/10 p-5 rounded-sm flex items-center gap-4 shadow-2xl animate-[pulse_3s_ease-in-out_infinite]">
+              <div className="absolute bottom-6 -left-10 bg-[#111] border border-white/10 p-5 rounded-sm flex items-center gap-4 shadow-2xl animate-[pulse_3s_ease-in-out_infinite]">
                 <span className="text-accentSec text-2xl"><i className="fa-solid fa-star"></i></span>
                 <div>
                   <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Award Winner</p>
@@ -764,7 +773,7 @@ export default function App() {
               </div>
 
               <div className="absolute top-32 -right-10 bg-[#111] border border-white/10 px-5 py-3 flex flex-col items-center">
-                <span className="font-bebas text-3xl text-white">50+</span>
+                <span className="font-bebas text-3xl text-white">500+</span>
                 <span className="text-[10px] text-gray-400 uppercase tracking-widest">Projects</span>
               </div>
             </div>
@@ -1023,7 +1032,7 @@ export default function App() {
 
           {/* Category Filters */}
           <div className="flex flex-wrap gap-3 mb-12">
-            {['ALL', 'POSTERS', 'AD CREATIVES', 'BROUCHERS', 'HORDINGS', 'LOGO DESIGN', 'BRANDING', 'VIDEOS'].map(cat => (
+            {['ALL', 'POSTERS', 'AD CREATIVES', 'BROUCHERS', 'HORDINGS', 'LOGO DESIGN', 'BRANDING', 'BUSINESS CARDS & ID CARDS', 'VIDEOS & REELS', 'OTHERS'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
@@ -1301,13 +1310,14 @@ export default function App() {
                             className="w-full bg-[#141414] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent transition-colors"
                           >
                             <option value="AD CREATIVES">AD CREATIVES</option>
-                            <option value="VIDEOS">VIDEOS</option>
+                            <option value="VIDEOS & REELS">VIDEOS & REELS</option>
                             <option value="BROUCHERS">BROUCHERS</option>
                             <option value="BRANDING">BRANDING</option>
                             <option value="HORDINGS DESIGNS">HORDINGS DESIGNS</option>
                             <option value="SOCIAL MEDIA CREATIVES">SOCIAL MEDIA CREATIVES</option>
                             <option value="SPECIAL DAYS POSTER">SPECIAL DAYS POSTER</option>
-                            <option value="OTHER">OTHER</option>
+                            <option value="BUSINESS CARDS & ID CARDS">BUSINESS CARDS & ID CARDS</option>
+                            <option value="OTHERS">OTHERS</option>
                           </select>
                         </div>
 
