@@ -11,6 +11,7 @@
     }
 }
 
+
 /* Noise Texture */
 .noise-overlay {
     position: fixed;
@@ -355,4 +356,115 @@ nav {
     overflow: hidden;
     display: inline-block;
     vertical-align: top;
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+    html {
+        font-size: 12px;
+    }
+    .preloader-letters {
+        font-size: 5rem;
+    }
+    .watermark {
+        font-size: 30vw;
+    }
+    .hero-content h1 {
+        font-size: 3.8rem;
+        line-height: 0.9;
+    }
+    .glass-panel {
+        padding: 1.5rem !important;
+    }
+    .marquee-content {
+        font-size: 1.8rem;
+    }
+    .portfolio-card {
+        height: 280px;
+    }
+}
+
+/* Large phones */
+@media (min-width: 481px) and (max-width: 767px) {
+    html {
+        font-size: 13.5px;
+    }
+    .preloader-letters {
+        font-size: 6.5rem;
+    }
+    .watermark {
+        font-size: 28vw;
+    }
+    .hero-content h1 {
+        font-size: 4.5rem;
+        line-height: 0.9;
+    }
+    .glass-panel {
+        padding: 2rem !important;
+    }
+    .marquee-content {
+        font-size: 2.2rem;
+    }
+}
+
+/* Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+    html {
+        font-size: 14.5px;
+    }
+    .preloader-letters {
+        font-size: 8rem;
+    }
+    .watermark {
+        font-size: 26vw;
+    }
+    .hero-content h1 {
+        font-size: 5.5rem;
+    }
+}
+
+/* Tablet landscape / small laptop */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    html {
+        font-size: 15px;
+    }
+    .watermark {
+        font-size: 24vw;
+    }
+}
+
+/* Laptop */
+@media (min-width: 1280px) and (max-width: 1439px) {
+    html {
+        font-size: 12.8px;
+    }
+    .watermark {
+        font-size: 22vw;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1440px) and (max-width: 1919px) {
+    html {
+        font-size: 13.6px;
+    }
+    .watermark {
+        font-size: 20vw;
+    }
+}
+
+/* 4K */
+@media (min-width: 1920px) {
+    html {
+        font-size: 22px;
+    }
+    .watermark {
+        font-size: 18vw;
+    }
+    .max-w-7xl {
+        max-width: 1600px;
+    }
+    .max-w-4xl {
+        max-width: 1100px;
+    }
 }
