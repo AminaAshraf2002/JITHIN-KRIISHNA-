@@ -1314,8 +1314,8 @@ export default function App() {
                             <option value="BROUCHERS">BROUCHERS</option>
                             <option value="BRANDING">BRANDING</option>
                             <option value="HORDINGS DESIGNS">HORDINGS DESIGNS</option>
-                            <option value="SOCIAL MEDIA CREATIVES">SOCIAL MEDIA CREATIVES</option>
-                            <option value="SPECIAL DAYS POSTER">SPECIAL DAYS POSTER</option>
+                            <option value="LOGO DESIGN">LOGO DESIGN</option>
+                            <option value="POSTERS">POSTERS</option>
                             <option value="BUSINESS CARDS & ID CARDS">BUSINESS CARDS & ID CARDS</option>
                             <option value="OTHERS">OTHERS</option>
                           </select>
