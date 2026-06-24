@@ -85,6 +85,11 @@ export default function App() {
   const handleCvFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 15 * 1024 * 1024) {
+        alert("CV file is too large. Maximum size is 15MB.");
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setCvFileData(reader.result);
@@ -98,10 +103,23 @@ export default function App() {
     setIsSubmittingCv(true);
 
     try {
+      let finalFileUrl = cvFileUrl;
+      let finalFileData = '';
+
+      if (cvFileData && cvFileData.startsWith('data:')) {
+        try {
+          finalFileUrl = await uploadToCloudinary(cvFileData);
+        } catch (uploadErr) {
+          console.error("Cloudinary CV upload failed:", uploadErr);
+          alert(`Cloudinary upload failed: ${uploadErr.message}. Falling back to storing in database...`);
+          finalFileData = cvFileData;
+        }
+      }
+
       const res = await fetch(`${API_BASE}/api/cv`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileData: cvFileData, fileUrl: cvFileUrl })
+        body: JSON.stringify({ fileData: finalFileData, fileUrl: finalFileUrl })
       });
 
       if (res.ok) {
@@ -114,7 +132,8 @@ export default function App() {
         alert('CV updated successfully!');
         setIsAdminOpen(false);
       } else {
-        alert('Failed to update CV.');
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Failed to update CV: ${errorData.message || 'Unknown server error.'}`);
       }
     } catch (err) {
       console.error(err);
@@ -439,14 +458,90 @@ export default function App() {
     localStorage.removeItem('jithin_admin_authed');
   };
 
-  const handleFileChange = (e) => {
+  const uploadToCloudinary = async (fileDataUri) => {
+    const formData = new FormData();
+    formData.append('file', fileDataUri);
+    formData.append('upload_preset', 'portfolio_preset');
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/xu6e72nr/auto/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || 'Cloudinary upload failed');
+    }
+
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const compressImage = (file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAdminFileData(reader.result);
-      };
-      reader.readAsDataURL(file);
+      if (file.type.startsWith('image/')) {
+        try {
+          const compressedDataUrl = await compressImage(file);
+          setAdminFileData(compressedDataUrl);
+        } catch (err) {
+          console.error("Image compression failed, using original file:", err);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setAdminFileData(reader.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      } else {
+        if (file.size > 15 * 1024 * 1024) {
+          alert("File is too large. Maximum size is 15MB.");
+          e.target.value = "";
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setAdminFileData(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -454,16 +549,29 @@ export default function App() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const payload = {
-      title: adminTitle,
-      category: adminCategory,
-      type: adminType,
-      fileData: adminFileData,
-      fileUrl: adminFileUrl,
-      description: adminDescription
-    };
-
     try {
+      let finalFileUrl = adminFileUrl;
+      let finalFileData = '';
+
+      if (adminFileData && adminFileData.startsWith('data:')) {
+        try {
+          finalFileUrl = await uploadToCloudinary(adminFileData);
+        } catch (uploadErr) {
+          console.error("Cloudinary upload failed:", uploadErr);
+          alert(`Cloudinary upload failed: ${uploadErr.message}. Falling back to storing in database...`);
+          finalFileData = adminFileData;
+        }
+      }
+
+      const payload = {
+        title: adminTitle,
+        category: adminCategory,
+        type: adminType,
+        fileData: finalFileData,
+        fileUrl: finalFileUrl,
+        description: adminDescription
+      };
+
       let res;
       if (editingId) {
         res = await fetch(`${API_BASE}/api/works/${editingId}`, {
@@ -485,7 +593,8 @@ export default function App() {
         setIsAdminOpen(false);
         fetchWorks();
       } else {
-        alert('Failed to save project.');
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Failed to save project: ${errorData.message || 'Unknown server error.'}`);
       }
     } catch (err) {
       console.error(err);
